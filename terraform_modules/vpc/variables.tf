@@ -25,3 +25,30 @@ variable "az_count" {
   default = 2
 }
 
+variable "single_nat_gateway" {
+  description = "we can use a single nat gateway instead of one per az if the env is dev"
+  type= bool
+  default = false
+}
+
+variable "enable_flow_logs" {
+  description = "Enable VPC Flow Logs for network monitoring"
+  type        = bool
+  default     = false
+}
+
+
+variable "create_bastion_sg" {
+  description = "Create a security group for bastion hosts"
+  type        = bool
+  default     = false
+}
+
+
+
+
+variable "bastion_allowed_cidr" {
+  description = "CIDR blocks allowed to connect to bastion hosts"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
