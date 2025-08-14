@@ -117,30 +117,43 @@ resource "aws_nat_gateway" "rag_nat" {
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.rag_vpc.id
-
-  route  {
-    cidr_block= "0.0.0.0/0" #source 
-    gateway_id= aws_internet_gateway.rag_igw.id #destination
-  }
-
   tags={
     Name = "${local.name}-public-route-table"
   }
 }
 
+  resource "aws_route" "public_igw" {
+    route_table_id = aws_route_table.public.id
+    destination_cidr_block = "0.0.0.0/0" #source 
+    gateway_id= aws_internet_gateway.rag_igw.id #destination
+  }
+
+# note : here i separeted the routes from the route table section to have separate creation and if there's any change in future 
+#in the destination then there will be less downtime coz the aws will just change the route instead of deleteing and creating the 
+#complete route table(only if i placed the route in the route table seciton)
+  
+
 resource "aws_route_table" "private" {
  count  = var.az_count
  vpc_id = aws_vpc.rag_vpc.id
  
- route {
-  cidr_block= "0.0.0.0/0" #source 
-  nat_gateway_id= var.single_nat_gateway ? aws_nat_gateway.rag_nat[0].id : aws_nat_gateway.rag_nat[count.index].id #destination
- }
-tags = merge(
+ tags = merge(
   { Name= "${local.name}-private-route_table-${count.index + 1}" },
   local.common_tags
 )
 }
+ resource "aws_route" "private_nat" {
+  count = var.single_nat_gateway ? 1 : var.az_count
+  route_table_id = aws_route_table.private[count.index].id
+  destination_cidr_block= "0.0.0.0/0" #source 
+  nat_gateway_id= var.single_nat_gateway ? aws_nat_gateway.rag_nat[0].id : aws_nat_gateway.rag_nat[count.index].id #destination
+ 
+}
+
+
+# note : here i separeted the routes from the route table section to have separate creation and if there's any change in future 
+#in the destination then there will be less downtime coz the aws will just change the route instead of deleteing and creating the 
+#complete route table(only if i placed the route in the route table seciton)
 
 #attaching route tables to subnets
 
