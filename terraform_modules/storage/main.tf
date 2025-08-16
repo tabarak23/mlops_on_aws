@@ -67,7 +67,6 @@ resource "aws_s3_bucket_cors_configuration" "rag_documents" {
 resource "aws_s3_bucket_lifecycle_configuration" "rag_s3_lifecycle" {
   bucket = aws_s3_bucket.rag_s3.id
 
-
   rule{
     id ="archive_old_documnt"
     status = "Enabled"
